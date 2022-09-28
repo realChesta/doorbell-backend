@@ -27,10 +27,10 @@ with open('config/settings.json') as f:
     config = json.load(f)
 
 def start_server(srv):
-    print('Starting server...')
+    print('Starting webserver...')
     thread = threading.Thread(target=srv.serve_forever);
     thread.start();
-    print('server running on ' + config['hostname'] + ':' + str(config['http-port']))
+    print('http running on ' + config['hostname'] + ':' + str(config['http-port']))
 
 def start_video_thread():
     thread = threading.Thread(target=video_main);
@@ -164,7 +164,7 @@ async def register(websocket):
 async def ws_main():
     print("starting ws server...")
     async with websockets.serve(register, config['hostname'], config['ws-port']):
-        print("started, waiting for connections!")
+        print("ws started, waiting for connections!")
         await asyncio.Future()
     print("done with ws!")
 
@@ -173,7 +173,7 @@ def video_main():
     #Import image
     print("connecting to the camera...", end=None)
     capture = VideoScreenshot(config['rtsp-url'])
-    print("connected!")
+    print("RTSP connected!")
 
     # ret, frame = vcap.read()
     frame = capture.get_frame()
@@ -199,12 +199,12 @@ def video_main():
             current_active_count += 1
             if current_active_count >= MIN_ACTIVE_FRAMES:
                 is_active = True
-                print("now active!")
+                print("motion now active!")
                 websockets.broadcast(CONNECTIONS, 'motion-start')
         elif is_active and brt <= BRIGHTNESS_THRESHOLD:
             current_active_count = 0
             is_active = False
-            print("no longer active!")
+            print("motion no longer active!")
             websockets.broadcast(CONNECTIONS, 'motion-end')
 
         
