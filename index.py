@@ -8,6 +8,7 @@ import websockets
 import asyncio
 from video_capture import VideoScreenshot
 import json
+import os 
 
 # THE CONFIG MUST HAVE THE FOLLOWING STRUCTURE:
 # {
@@ -21,9 +22,11 @@ import json
 BRIGHTNESS_THRESHOLD = 100
 MIN_ACTIVE_FRAMES = 3
 
+DIR_PATH = os.path.dirname(os.path.realpath(__file__))
+
 CONNECTIONS = set()
 
-with open('config/settings.json') as f:
+with open(os.path.join(DIR_PATH, 'config/settings.json')) as f:
     config = json.load(f)
 
 def start_server(srv):
