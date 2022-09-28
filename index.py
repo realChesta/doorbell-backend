@@ -7,22 +7,30 @@ import webserver
 import websockets
 import asyncio
 from video_capture import VideoScreenshot
-# from matplotlib import pyplot as plt
+import json
 
-hostName = "0.0.0.0"
-serverPort = 8000
-socketPort = 8002
+# THE CONFIG MUST HAVE THE FOLLOWING STRUCTURE:
+# {
+#     "hostname": string,
+#     "http-port": number,
+#     "ws-port": number,
+#     "capture-interval": float,
+#     "rtsp-url": string
+# }
 
 BRIGHTNESS_THRESHOLD = 100
 MIN_ACTIVE_FRAMES = 3
 
 CONNECTIONS = set()
 
+with open('config/settings.json') as f:
+    config = json.load(f)
+
 def start_server(srv):
     print('Starting server...')
     thread = threading.Thread(target=srv.serve_forever);
     thread.start();
-    print('server running on ' + hostName + ':' + str(serverPort))
+    print('server running on ' + config['hostname'] + ':' + str(config['http-port']))
 
 def start_video_thread():
     thread = threading.Thread(target=video_main);
@@ -155,7 +163,7 @@ async def register(websocket):
 
 async def ws_main():
     print("starting ws server...")
-    async with websockets.serve(register, hostName, socketPort):
+    async with websockets.serve(register, config['hostname'], config['ws-port']):
         print("started, waiting for connections!")
         await asyncio.Future()
     print("done with ws!")
@@ -164,15 +172,14 @@ async def ws_main():
 def video_main():
     #Import image
     print("connecting to the camera...", end=None)
-    capture = VideoScreenshot("rtsp://tapoadmin:Hurensohn123@192.168.13.44/stream1")
-    # vcap = cv2.VideoCapture("rtsp://tapoadmin:Hurensohn123@192.168.13.44/stream1")
+    capture = VideoScreenshot(config['rtsp-url'])
     print("connected!")
 
     # ret, frame = vcap.read()
     frame = capture.get_frame()
     width, height = 960, 720
     P = get_perspective_transform(frame, width, height)
-    webServer = HTTPServer((hostName, serverPort), webserver.CamServer)
+    webServer = HTTPServer((config['hostname'], config['http-port']), webserver.CamServer)
     start_server(webServer)
     is_active = False
     current_active_count = 0
@@ -200,11 +207,8 @@ def video_main():
             print("no longer active!")
             websockets.broadcast(CONNECTIONS, 'motion-end')
 
-        # #Show the image
-        show_img(perspective)
-        # sleep(0.5)
-        if cv2.waitKey(1000) == ord('q'):
-            break
+        
+        sleep(config['capture-interval'])
 
     # vcap.release()
     capture.release()
