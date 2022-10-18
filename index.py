@@ -158,11 +158,13 @@ def show_img(img):
 
 async def register(websocket):
     CONNECTIONS.add(websocket)
+    print("new ws connected!")
     try:
         async for message in websocket:
             print(message)
     finally:
         CONNECTIONS.remove(websocket)
+        print("ws disconnected!")
 
 async def ws_main():
     print("starting ws server...")
