@@ -20,7 +20,7 @@ import os
 # }
 
 BRIGHTNESS_THRESHOLD = 100
-MIN_ACTIVE_FRAMES = 3
+MIN_ACTIVE_FRAMES = 5
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 
